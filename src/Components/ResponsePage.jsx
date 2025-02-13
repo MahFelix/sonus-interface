@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Sidebar from "../Components/Sidebar";
 import Footer from "../Components/Footer";
+import axios from "axios";
+import DOMPurify from "dompurify"; // Importe DOMPurify para sanitizar o conteúdo
 
 // Estilos globais para a fonte Poppins
 const GlobalStyle = styled.div`
@@ -18,6 +20,7 @@ const ResponseContainer = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   color: white;
+  padding-bottom: 100px;
 `;
 
 const ResponseText = styled.div`
@@ -30,28 +33,62 @@ const ResponseText = styled.div`
   white-space: pre-wrap;
   line-height: 1.6;
   font-size: 1rem;
-  margin-bottom: 100px;
+  margin-bottom: 10px;
+  max-height: 400px; // Altura máxima da div
+  overflow-y: auto; // Habilita a rolagem vertical
+  scroll-behavior: smooth; // Rolagem suave
+
+  /* Estilizando a barra de rolagem */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.primary};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.colors.primaryDark};
+  }
 `;
 
-const BackButton = styled.button`
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 20px; // Espaçamento entre os botões
   margin-top: 2rem;
+  margin-bottom: 2rem;
+`;
+
+const Button = styled.button`
   padding: 0.75rem 1.5rem;
   background-color: ${({ theme }) => theme.colors.primary};
   color: ${({ theme }) => theme.colors.text};
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  transition: background-color 0.3s ease;
-  margin-bottom: 2rem;
-  margin-left: 100px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.secondary};
+    background-color: ${({ theme }) => theme.colors.primaryDark};
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 `;
-
 
 const LoadingSpinner = styled.div`
   border: 4px solid rgba(255, 255, 255, 0.3);
@@ -72,10 +109,21 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+const Message = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.9rem;
+`;
+
 const ResponsePage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(""); // Estado para feedback ao salvar o plano
 
   useEffect(() => {
     if (location.state && location.state.response) {
@@ -84,15 +132,21 @@ const ResponsePage = () => {
       let generatedText = "";
       if (typeof responseData === "string") {
         generatedText = responseData;
-      } else if (responseData.candidates && responseData.candidates[0]?.content?.parts[0]?.text) {
+      } else if (
+        responseData.candidates &&
+        responseData.candidates[0]?.content?.parts[0]?.text
+      ) {
         generatedText = responseData.candidates[0].content.parts[0].text;
       } else {
         generatedText = "Resposta inválida recebida da API.";
       }
 
-      const formattedResponse = generatedText
-        .replace(/\n/g, "<br>")
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      // Sanitiza o conteúdo antes de renderizar
+      const formattedResponse = DOMPurify.sanitize(
+        generatedText
+          .replace(/\n/g, "<br>")
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      );
 
       setResponse(formattedResponse);
       setLoading(false);
@@ -102,12 +156,38 @@ const ResponsePage = () => {
     }
   }, [location.state]);
 
+  // Função para salvar o plano de sono
+ const handleSavePlan = async () => {
+  try {
+    const responseData = location.state.response;
+    const generatedText =
+      typeof responseData === "string"
+        ? responseData
+        : responseData.candidates[0].content.parts[0].text;
+
+    // Envia o plano de sono para o backend
+    await axios.post("http://localhost:8090/api/sleep/save", {
+      plan: generatedText,
+      createdAt: new Date().toISOString(),
+    });
+
+    setMessage("Plano de sono salvo com sucesso!");
+    navigate("/dashboard"); // Redireciona para o dashboard
+  } catch (error) {
+    console.error("Erro ao salvar o plano de sono:", error);
+    setMessage("Erro ao salvar o plano de sono. Verifique o console para mais detalhes.");
+  }
+};
+
   return (
     <GlobalStyle>
       <Sidebar />
-      <BackButton onClick={() => window.history.back()}>
-              Voltar ao Formulário
-            </BackButton>
+      <ButtonContainer>
+        <Button onClick={() => navigate("/form")}>
+          Voltar ao Formulário
+        </Button>
+        <Button onClick={handleSavePlan}>Salvar Plano de Sono</Button>
+      </ButtonContainer>
       <ResponseContainer>
         <h1>Resposta Personalizada</h1>
         {loading ? (
@@ -115,7 +195,7 @@ const ResponsePage = () => {
         ) : (
           <>
             <ResponseText dangerouslySetInnerHTML={{ __html: response }} />
-            
+            {message && <Message>{message}</Message>}
           </>
         )}
       </ResponseContainer>

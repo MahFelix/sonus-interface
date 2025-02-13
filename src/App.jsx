@@ -6,7 +6,8 @@ import ResponsePage from "./Components/ResponsePage";
 const App = () => (
   <Router>
     <Routes>
-      <Route path="/" element={<Dashboard />} />
+    <Route path="/" element={<Dashboard />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/form" element={<Form />} />
       <Route path="/response" element={<ResponsePage/>} />
     </Routes>

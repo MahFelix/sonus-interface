@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Bar, Pie } from "react-chartjs-2";
 import Sidebar from "../Components/Sidebar";
 import Footer from "../Components/Footer";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from "chart.js";
-import { useNavigate } from "react-router-dom"; // Importe o useNavigate para redirecionamento
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // Registre as escalas e outros componentes necessários
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -23,12 +25,10 @@ const DashboardContainer = styled.div`
 `;
 
 const MainContent = styled.div`
-
   flex: 1;
   padding: 1rem;
   justify-content: center;
   align-items: center;
-  
 `;
 
 const ChartContainer = styled.div`
@@ -52,71 +52,88 @@ const Button = styled.button`
   justify-content: center;
   margin-left: 90px;
 
-
   &:hover {
     background-color: ${({ theme }) => theme.colors.primaryDark};
   }
 `;
 
-const dataBar = {
-  labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
-  datasets: [
-    {
-      label: "Horas de Sono",
-      data: [7, 6, 8, 7.5, 6.5, 8, 9],
-      backgroundColor: "#1E90FF",
-    },
-  ],
-};
-
-const dataPie = {
-  labels: ["Sono Adequado", "Sono Insuficiente"],
-  datasets: [
-    {
-      label: "Horas de Sono",
-      data: [5, 2], // Exemplo: 5 dias com sono adequado, 2 dias com sono insuficiente
-      backgroundColor: ["#1E90FF", "#FF6384"],
-    },
-  ],
-};
-
-const optionsBar = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: "top",
-    },
-    title: {
-      display: true,
-      text: "Horas de Sono por Dia",
-    },
-  },
-};
-
-const optionsPie = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: "top",
-    },
-    title: {
-      display: true,
-      text: "Distribuição do Sono",
-    },
-  },
-};
-
 const Dashboard = () => {
-  const isMobile = window.innerWidth < 768; // Verifica se a tela é menor que 768px
-  const navigate = useNavigate(); // Hook para redirecionamento
+  const isMobile = window.innerWidth < 768;
+  const navigate = useNavigate();
+  const [sleepData, setSleepData] = useState([]);
+
+  useEffect(() => {
+    const fetchSleepData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8090/api/sleep");
+        setSleepData(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar dados de sono:", error);
+      }
+    };
+
+    fetchSleepData();
+  }, []);
+
+  // Configuração do gráfico de barras
+  const dataBar = {
+    labels: sleepData.map((entry) => new Date(entry.createdAt).toLocaleDateString()),
+    datasets: [
+      {
+        label: "Plano de Sono",
+        data: sleepData.map((entry) => entry.plan.length), // Exemplo: usar o tamanho do plano como dado
+        backgroundColor: "#1E90FF",
+      },
+    ],
+  };
+
+  // Configuração do gráfico de pizza
+  const dataPie = {
+    labels: ["Sono Adequado", "Sono Insuficiente"],
+    datasets: [
+      {
+        label: "Distribuição do Sono",
+        data: [5, 2], // Exemplo: 5 dias com sono adequado, 2 dias com sono insuficiente
+        backgroundColor: ["#1E90FF", "#FF6384"],
+      },
+    ],
+  };
+
+  // Opções para o gráfico de barras
+  const optionsBar = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Plano de Sono por Dia",
+      },
+    },
+  };
+
+  // Opções para o gráfico de pizza
+  const optionsPie = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Distribuição do Sono",
+      },
+    },
+  };
 
   const handleFormButtonClick = () => {
-    navigate("/form"); // Redireciona para a página do formulário
+    navigate("/form");
   };
 
   return (
     <>
-    <GlobalStyle/>
+      <GlobalStyle />
       <DashboardContainer>
         <Sidebar />
         <MainContent>

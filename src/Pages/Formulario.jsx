@@ -4,7 +4,16 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "../Components/Sidebar";
 import Footer from "../Components/Footer";
-import Sonus from '../assets/Sonusimage.png'
+import Sonus from '../assets/Sonusimage.png';
+import DOMPurify from "dompurify";
+
+// Função para formatar o texto do plano
+const formatPlanText = (text) => {
+  let formattedText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  formattedText = formattedText.replace(/\* (.*?)\n/g, "<li>$1</li>");
+  formattedText = formattedText.replace(/\n/g, "<br>");
+  return DOMPurify.sanitize(formattedText);
+};
 
 // Estilos globais para a fonte Poppins
 const GlobalStyle = styled.div`
@@ -47,6 +56,22 @@ const Input = styled.input`
   }
 `;
 
+const Select = styled.select`
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.secondary};
+  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 const Button = styled.button`
   width: 100%;
   padding: 0.75rem;
@@ -65,15 +90,30 @@ const Button = styled.button`
   }
 `;
 
+const DeleteButton = styled.button`
+  padding: 0.5rem 1rem;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #cc0000;
+  }
+`;
 
 const Logo = styled.img`
-  height: 200px; // Ajuste a altura conforme necessário
-  width: 200px; // Mantém a proporção da imagem
+  height: 200px;
+  width: 200px;
   display: flex;
   justify-content: center;
   margin-top: -80px;
   align-items: center;
-  margin-left:65px;
+  margin-left: 65px;
 `;
 
 const ReportContainer = styled.div`
@@ -96,6 +136,38 @@ const ReportItem = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
   border-radius: 8px;
   color: ${({ theme }) => theme.colors.text};
+  color: white;
+  max-height: 400px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.primary};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.colors.primaryDark};
+  }
+
+  ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 0.5rem 0;
+  }
+
+  strong {
+    font-weight: bold;
+  }
 `;
 
 const LoadingSpinner = styled.div`
@@ -121,11 +193,13 @@ const Form = () => {
   const [formData, setFormData] = useState({
     bedtime: "",
     wakeupTime: "",
-    difficulties: "",
+    difficulties: [],
     sleepQuality: 5,
     stressLevel: 5,
     usesMedication: false,
+    medicationDetails: "",
     sleepNotes: "",
+    plan: "",
   });
   const [sleepHistory, setSleepHistory] = useState([]);
   const [showReport, setShowReport] = useState(false);
@@ -137,7 +211,8 @@ const Form = () => {
     const fetchSleepHistory = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:8090/api/sleep/history");
+        const response = await axios.get("http://localhost:8090/api/sleep/save/history");
+        console.log("Dados retornados pelo backend:", response.data);
         setSleepHistory(response.data);
       } catch (error) {
         console.error("Erro ao buscar histórico de sono:", error);
@@ -153,15 +228,25 @@ const Form = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      // Envia os dados para o backend
       const response = await axios.post(
         "http://localhost:8090/api/sleep/generate-prompt",
         formData
       );
-      // Navega para a página de resposta com o resultado
       navigate("/response", { state: { response: response.data } });
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      setLoading(true);
+      await axios.delete(`http://localhost:8090/api/sleep/${id}`);
+      setSleepHistory(sleepHistory.filter((entry) => entry.id !== id));
+    } catch (error) {
+      console.error("Erro ao deletar o plano de sono:", error);
     } finally {
       setLoading(false);
     }
@@ -178,7 +263,7 @@ const Form = () => {
         <h2>Formulário de Sono</h2>
         <form onSubmit={handleSubmit}>
           <InputGroup>
-          <Logo src={Sonus}></Logo>
+            <Logo src={Sonus} alt="Sonus Logo" />
             <Label htmlFor="bedtime">Hora de dormir</Label>
             <Input
               id="bedtime"
@@ -215,6 +300,35 @@ const Form = () => {
             />
           </InputGroup>
 
+          <InputGroup>
+            <Label htmlFor="usesMedication">Usa medicamentos?</Label>
+            <Select
+              id="usesMedication"
+              value={formData.usesMedication}
+              onChange={(e) =>
+                setFormData({ ...formData, usesMedication: e.target.value === "true" })
+              }
+            >
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </Select>
+          </InputGroup>
+
+          {formData.usesMedication && (
+            <InputGroup>
+              <Label htmlFor="medicationDetails">Detalhes dos medicamentos</Label>
+              <Input
+                id="medicationDetails"
+                type="text"
+                placeholder="Ex: Nome do medicamento, dosagem, etc."
+                value={formData.medicationDetails}
+                onChange={(e) =>
+                  setFormData({ ...formData, medicationDetails: e.target.value })
+                }
+              />
+            </InputGroup>
+          )}
+
           <Button type="submit" disabled={loading}>
             {loading ? "Enviando..." : "Enviar"}
           </Button>
@@ -233,17 +347,19 @@ const Form = () => {
               sleepHistory.map((entry, index) => (
                 <ReportItem key={index}>
                   <p>
-                    <strong>Data:</strong> {new Date(entry.date).toLocaleDateString()}
+                    <strong>Data:</strong> {new Date(entry.createdAt).toLocaleDateString()}
                   </p>
                   <p>
-                    <strong>Hora de dormir:</strong> {entry.bedtime}
+                    <strong>Plano:</strong>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: formatPlanText(entry.plan || "Nenhum plano disponível"),
+                      }}
+                    />
                   </p>
-                  <p>
-                    <strong>Hora de acordar:</strong> {entry.wakeupTime}
-                  </p>
-                  <p>
-                    <strong>Dificuldades:</strong> {entry.difficulties}
-                  </p>
+                  <DeleteButton onClick={() => handleDelete(entry.id)}>
+                    Deletar
+                  </DeleteButton>
                 </ReportItem>
               ))
             ) : (
