@@ -30,6 +30,7 @@ const ResponseText = styled.div`
   margin-top: 1rem;
   color: ${({ theme }) => theme.colors.text};
   text-align: left;
+  border: solid 3px white;
   white-space: pre-wrap;
   line-height: 1.6;
   font-size: 1rem;
@@ -172,7 +173,7 @@ const ResponsePage = () => {
     });
 
     setMessage("Plano de sono salvo com sucesso!");
-    navigate("/dashboard"); // Redireciona para o dashboard
+    navigate("/form"); // Redireciona para o dashboard
   } catch (error) {
     console.error("Erro ao salvar o plano de sono:", error);
     setMessage("Erro ao salvar o plano de sono. Verifique o console para mais detalhes.");

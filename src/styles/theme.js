@@ -1,7 +1,7 @@
 export const theme = {
     colors: {
       primary: "#1E90FF", // Azul
-      secondary: "#2F4F4F", // Cinza
+      secondary: "#000000", // Cinza
       background: "#000000", // Preto
       text: "#FFFFFF", // Branco
     },

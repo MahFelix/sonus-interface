@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Sidebar from "../Components/Sidebar";
 import Footer from "../Components/Footer";
 import Sonus from '../assets/Sonusimage.png';
 import DOMPurify from "dompurify";
+import Header from "../Components/Header";
 
 // Função para formatar o texto do plano
 const formatPlanText = (text) => {
@@ -24,20 +24,23 @@ const FormContainer = styled.div`
   padding: 2rem;
   max-width: 600px;
   margin: 0 auto;
-  background-color: ${({ theme }) => theme.colors.background};
+  background: linear-gradient(180deg, #87ceeb, #e0f7fa); // Gradiente de céu
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 100px;
+
 `;
 
 const InputGroup = styled.div`
   margin-bottom: 1.5rem;
+  z-index: 2;
 `;
 
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: ${({ theme }) => theme.colors.text};
+  color: black;
 `;
 
 const Input = styled.input`
@@ -49,6 +52,7 @@ const Input = styled.input`
   color: ${({ theme }) => theme.colors.text};
   font-size: 1rem;
   transition: border-color 0.3s ease;
+  
 
   &:focus {
     outline: none;
@@ -100,18 +104,20 @@ const DeleteButton = styled.button`
   font-size: 0.9rem;
   margin-top: 1rem;
   transition: background-color 0.3s ease;
+  
 
   &:hover {
     background-color: #cc0000;
   }
 `;
 
+
 const Logo = styled.img`
   height: 200px;
   width: 200px;
   display: flex;
   justify-content: center;
-  margin-top: -80px;
+  margin-top: -40px;
   align-items: center;
   margin-left: 65px;
 `;
@@ -139,7 +145,9 @@ const ReportItem = styled.div`
   color: white;
   max-height: 400px;
   overflow-y: auto;
+  border: solid 3px white;
   scroll-behavior: smooth;
+ 
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -193,7 +201,7 @@ const Form = () => {
   const [formData, setFormData] = useState({
     bedtime: "",
     wakeupTime: "",
-    difficulties: [],
+    difficulties: [""],
     sleepQuality: 5,
     stressLevel: 5,
     usesMedication: false,
@@ -258,76 +266,85 @@ const Form = () => {
 
   return (
     <GlobalStyle>
-      <Sidebar />
+      <Header/>
       <FormContainer>
-        <h2>Formulário de Sono</h2>
-        <form onSubmit={handleSubmit}>
-          <InputGroup>
-            <Logo src={Sonus} alt="Sonus Logo" />
-            <Label htmlFor="bedtime">Hora de dormir</Label>
-            <Input
-              id="bedtime"
-              type="time"
-              value={formData.bedtime}
-              onChange={(e) =>
-                setFormData({ ...formData, bedtime: e.target.value })
-              }
-            />
-          </InputGroup>
+   
+      <form onSubmit={handleSubmit}>
+  <InputGroup>
+    <Logo src={Sonus} alt="Sonus Logo" />
+    <Label htmlFor="bedtime">A que horas você pretende dormir hoje? 😴</Label>
+    <Input
+      id="bedtime"
+      type="time"
+      value={formData.bedtime}
+      onChange={(e) =>
+        setFormData({ ...formData, bedtime: e.target.value })
+      }
+    />
+  </InputGroup>
+  
+  <InputGroup>
+    <Label htmlFor="wakeupTime">E a que horas quer acordar? ⏰</Label>
+    <Input
+      id="wakeupTime"
+      type="time"
+      value={formData.wakeupTime}
+      onChange={(e) =>
+        setFormData({ ...formData, wakeupTime: e.target.value })
+      }
+    />
+  </InputGroup>
 
-          <InputGroup>
-            <Label htmlFor="wakeupTime">Hora de acordar</Label>
-            <Input
-              id="wakeupTime"
-              type="time"
-              value={formData.wakeupTime}
-              onChange={(e) =>
-                setFormData({ ...formData, wakeupTime: e.target.value })
-              }
-            />
-          </InputGroup>
+  <InputGroup>
+    <Label htmlFor="difficulties">
+      Tem enfrentado alguma dificuldade para dormir? Me conta! 🤔
+    </Label>
+    <Input
+      id="difficulties"
+      type="text"
+      placeholder="Ex: Insônia, sonolência diurna, etc."
+      value={formData.difficulties.join(", ")}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          difficulties: e.target.value.split(",").map(item => item.trim())
+        })
+      }
+    />
+  </InputGroup>
 
-          <InputGroup>
-            <Label htmlFor="difficulties">Dificuldades</Label>
-            <Input
-              id="difficulties"
-              type="text"
-              placeholder="Ex: Insônia, sonolência diurna, etc."
-              value={formData.difficulties}
-              onChange={(e) =>
-                setFormData({ ...formData, difficulties: e.target.value })
-              }
-            />
-          </InputGroup>
+  <InputGroup>
+    <Label htmlFor="usesMedication">
+      Você usa algum medicamento para dormir? 💊
+    </Label>
+    <Select
+      id="usesMedication"
+      value={formData.usesMedication}
+      onChange={(e) =>
+        setFormData({ ...formData, usesMedication: e.target.value === "true" })
+      }
+    >
+      <option value="true">Sim</option>
+      <option value="false">Não</option>
+    </Select>
+  </InputGroup>
 
-          <InputGroup>
-            <Label htmlFor="usesMedication">Usa medicamentos?</Label>
-            <Select
-              id="usesMedication"
-              value={formData.usesMedication}
-              onChange={(e) =>
-                setFormData({ ...formData, usesMedication: e.target.value === "true" })
-              }
-            >
-              <option value="true">Sim</option>
-              <option value="false">Não</option>
-            </Select>
-          </InputGroup>
-
-          {formData.usesMedication && (
-            <InputGroup>
-              <Label htmlFor="medicationDetails">Detalhes dos medicamentos</Label>
-              <Input
-                id="medicationDetails"
-                type="text"
-                placeholder="Ex: Nome do medicamento, dosagem, etc."
-                value={formData.medicationDetails}
-                onChange={(e) =>
-                  setFormData({ ...formData, medicationDetails: e.target.value })
-                }
-              />
-            </InputGroup>
-          )}
+  {formData.usesMedication && (
+    <InputGroup>
+      <Label htmlFor="medicationDetails">
+        Ah, e quais são os medicamentos? Me diz os detalhes! 📝
+      </Label>
+      <Input
+        id="medicationDetails"
+        type="text"
+        placeholder="Ex: Nome do medicamento, dosagem, etc."
+        value={formData.medicationDetails}
+        onChange={(e) =>
+          setFormData({ ...formData, medicationDetails: e.target.value })
+        }
+      />
+    </InputGroup>
+  )}
 
           <Button type="submit" disabled={loading}>
             {loading ? "Enviando..." : "Enviar"}
