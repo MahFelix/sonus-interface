@@ -11,7 +11,7 @@ import axios from "axios";
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const GlobalStyle = styled.div`
-  font-family: ${({ theme }) => theme.fonts.primary};
+font-family: "Quicksand", sans-serif;
 `;
 
 const DashboardContainer = styled.div`

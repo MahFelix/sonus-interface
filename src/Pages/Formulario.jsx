@@ -17,7 +17,7 @@ const formatPlanText = (text) => {
 
 // Estilos globais para a fonte Poppins
 const GlobalStyle = styled.div`
-  font-family: 'Poppins', sans-serif;
+font-family: "Quicksand", sans-serif;
 `;
 
 const FormContainer = styled.div`

@@ -8,7 +8,7 @@ import DOMPurify from "dompurify"; // Importe DOMPurify para sanitizar o conteú
 
 // Estilos globais para a fonte Poppins
 const GlobalStyle = styled.div`
-  font-family: ${({ theme }) => theme.fonts.primary};
+font-family: "Quicksand", sans-serif;
 `;
 
 const ResponseContainer = styled.div`

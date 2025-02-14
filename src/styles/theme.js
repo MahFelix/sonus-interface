@@ -6,8 +6,8 @@ export const theme = {
       text: "#FFFFFF", // Branco
     },
     fonts: {
-     primary: "'Poppins', sans-serif",
-      secondary: "'Roboto', sans-serif",
+     primary: "Quicksand, serif",
+      secondary: "Quicksand, serif",
     },
     spacing: {
       small: "8px",

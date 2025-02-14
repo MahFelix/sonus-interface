@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 const GlobalStyle = styled.div`
-  font-family: ${({ theme }) => theme.fonts.primary};
+font-family: "Quicksand", sans-serif;
 `;
 
 const FooterContainer = styled.footer`
