@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Sidebar from "../Components/Sidebar";
 import Footer from "../Components/Footer";
 import axios from "axios";
 import DOMPurify from "dompurify"; // Importe DOMPurify para sanitizar o conteúdo
@@ -182,7 +181,6 @@ const ResponsePage = () => {
 
   return (
     <GlobalStyle>
-      <Sidebar />
       <ButtonContainer>
         <Button onClick={() => navigate("/form")}>
           Voltar ao Formulário
