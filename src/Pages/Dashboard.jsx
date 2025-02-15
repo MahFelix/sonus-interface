@@ -101,7 +101,7 @@ const Cloud = styled.div`
 const StartButton = styled(motion.button)`
   position: absolute;
   top: 1%;
-  left: 33%;
+  left: 29%;
   transform: translate(-50%, -50%);
   background-color: #1e90ff;
   color: white;
@@ -129,7 +129,7 @@ const StartButton = styled(motion.button)`
 const Pulse = styled(motion.div)`
   position: absolute;
   top: -10%;
-  left: 30%;
+  left: 25%;
   transform: translate(-50%, -50%);
   width: 160px;
   height: 160px;
@@ -141,7 +141,7 @@ const Pulse = styled(motion.div)`
 // Texto de Boas-Vindas
 const WelcomeText = styled(motion.h1)`
   position: absolute;
-  top: -200%;
+  top: -120%;
   left: -7%;
   transform: translate(-50%, -50%);
   color: #1e90ff;
