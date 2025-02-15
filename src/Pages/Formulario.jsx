@@ -29,11 +29,14 @@ const FormContainer = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 100px;
 
+
 `;
 
 const InputGroup = styled.div`
   margin-bottom: 1.5rem;
   z-index: 2;
+  margin-right: 12px;
+  margin-left: -10px;
 `;
 
 const Label = styled.label`
