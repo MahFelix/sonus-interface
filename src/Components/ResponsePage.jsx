@@ -18,6 +18,7 @@ const GlobalStyle = styled.div`
   background-color: #0a0a23; /* Fundo escuro para o tema espacial */
 `;
 
+
 const ResponseContainer = styled.div`
   padding: 2rem;
   max-width: 800px;
@@ -230,7 +231,12 @@ const ResponsePage = () => {
       .replace(/<[^>]+>/g, ""); // Remove outras tags HTML
 
     // Cria um novo documento PDF
+    const { jsPDF } = window.jspdf;
+
+    // Exemplo de uso
     const doc = new jsPDF();
+    doc.text('Hello world!', 10, 10);
+    doc.save('example.pdf');
 
     // Configurações para quebrar o texto em várias linhas
     const pageWidth = doc.internal.pageSize.getWidth(); // Largura da página
