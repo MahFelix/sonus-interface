@@ -1,13 +1,15 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../Components/Footer";
 import axios from "axios";
 import DOMPurify from "dompurify"; // Importe DOMPurify para sanitizar o conteúdo
+import { jsPDF } from "jspdf"; // Importe a biblioteca jspdf
 
 // Estilos globais para a fonte Poppins
 const GlobalStyle = styled.div`
-font-family: "Quicksand", sans-serif;
+  font-family: "Quicksand", sans-serif;
 `;
 
 const ResponseContainer = styled.div`
@@ -157,27 +159,81 @@ const ResponsePage = () => {
   }, [location.state]);
 
   // Função para salvar o plano de sono
- const handleSavePlan = async () => {
-  try {
-    const responseData = location.state.response;
-    const generatedText =
-      typeof responseData === "string"
-        ? responseData
-        : responseData.candidates[0].content.parts[0].text;
+  const handleSavePlan = async () => {
+    try {
+      // Verifica se os dados do formulário estão disponíveis
+      if (!location.state || !location.state.formData) {
+        throw new Error("Dados do formulário não encontrados.");
+      }
 
-    // Envia o plano de sono para o backend
-    await axios.post("http://localhost:8090/api/sleep/save", {
-      plan: generatedText,
-      createdAt: new Date().toISOString(),
+      const responseData = location.state.response;
+      const generatedText =
+        typeof responseData === "string"
+          ? responseData
+          : responseData.candidates[0].content.parts[0].text;
+
+      // Recupera os dados do formulário do estado da localização
+      const formData = location.state.formData;
+
+      // Cria o objeto SleepPlan com todos os campos necessários
+      const sleepPlan = {
+        bedtime: formData.bedtime,
+        wakeupTime: formData.wakeupTime,
+        difficulties: formData.difficulties.join(", "), // Converte array para string
+        sleepQuality: formData.sleepQuality,
+        stressLevel: formData.stressLevel,
+        usesMedication: formData.usesMedication,
+        medicationDetails: formData.medicationDetails,
+        sleepNotes: formData.sleepNotes,
+        plan: generatedText, // Plano gerado pela API
+        createdAt: new Date().toISOString(), // Data de criação
+      };
+
+      // Envia o plano de sono para o backend
+      await axios.post("http://localhost:8090/api/sleep/save", sleepPlan);
+
+      setMessage("Plano de sono salvo com sucesso!");
+      navigate("/form"); // Redireciona para o formulário
+    } catch (error) {
+      console.error("Erro ao salvar o plano de sono:", error);
+      setMessage("Erro ao salvar o plano de sono. Verifique o console para mais detalhes.");
+    }
+  };
+
+  // Função para baixar o texto em PDF
+  const handleDownloadPDF = () => {
+    // Remove as tags HTML e converte o conteúdo em texto simples
+    const plainText = response
+      .replace(/<br\s*\/?>/g, "\n") // Substitui <br> por \n
+      .replace(/<[^>]+>/g, ""); // Remove outras tags HTML
+  
+    // Cria um novo documento PDF
+    const doc = new jsPDF();
+  
+    // Configurações para quebrar o texto em várias linhas
+    const pageWidth = doc.internal.pageSize.getWidth(); // Largura da página
+    const margin = 10; // Margem esquerda e direita
+    const maxWidth = pageWidth - margin * 2; // Largura máxima do texto
+    const lineHeight = 10; // Altura de cada linha
+    const pageHeight = doc.internal.pageSize.getHeight(); // Altura da página
+    let y = 10; // Posição Y inicial
+  
+    // Divide o texto em várias linhas
+    const lines = doc.splitTextToSize(plainText, maxWidth);
+  
+    // Adiciona o texto ao PDF
+    lines.forEach((line) => {
+      if (y + lineHeight > pageHeight - margin) {
+        doc.addPage(); // Adiciona uma nova página
+        y = margin; // Reinicia a posição Y
+      }
+      doc.text(line, margin, y); // Adiciona a linha ao PDF
+      y += lineHeight; // Atualiza a posição Y
     });
-
-    setMessage("Plano de sono salvo com sucesso!");
-    navigate("/form"); // Redireciona para o dashboard
-  } catch (error) {
-    console.error("Erro ao salvar o plano de sono:", error);
-    setMessage("Erro ao salvar o plano de sono. Verifique o console para mais detalhes.");
-  }
-};
+  
+    // Salva o PDF com um nome de arquivo
+    doc.save("plano_de_sono.pdf");
+  };
 
   return (
     <GlobalStyle>
@@ -185,7 +241,7 @@ const ResponsePage = () => {
         <Button onClick={() => navigate("/form")}>
           Voltar ao Formulário
         </Button>
-        <Button onClick={handleSavePlan}>Salvar Plano de Sono</Button>
+   
       </ButtonContainer>
       <ResponseContainer>
         <h1>Resposta Personalizada</h1>
@@ -195,6 +251,7 @@ const ResponsePage = () => {
           <>
             <ResponseText dangerouslySetInnerHTML={{ __html: response }} />
             {message && <Message>{message}</Message>}
+            <Button onClick={handleDownloadPDF}>Baixar PDF</Button>
           </>
         )}
       </ResponseContainer>

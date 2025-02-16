@@ -5,12 +5,12 @@ import ResponsePage from "./Components/ResponsePage";
 
 
 const App = () => {
-  const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+  const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent); //>> Bloqueia o acesso em computadores!
 
   if (!isMobile) {
     return (
       <div style={{ textAlign: "center", marginTop: "20%" }}>
-        <h2>O acesso é permitido apenas via celular 📱</h2>
+        <h2>O acesso é permitido apenas via <strong>celular</strong> 📱</h2>
       </div>
     );
   }

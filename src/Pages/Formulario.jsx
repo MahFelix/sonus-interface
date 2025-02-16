@@ -243,13 +243,14 @@ const Form = () => {
         "http://localhost:8090/api/sleep/generate-prompt",
         formData
       );
-      navigate("/response", { state: { response: response.data } });
-    } catch (error) {
-      console.error("Erro ao enviar dados:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      navigate("/response", { state: { response: response.data, formData: formData } });
+  } catch (error) {
+    console.error("Erro ao enviar dados:", error);
+    alert("Ocorreu um erro ao gerar o plano de sono. Tente novamente mais tarde.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDelete = async (id) => {
     try {
