@@ -38,15 +38,16 @@ const InputGroup = styled.div`
   margin-right: 12px;
   margin-left: -10px;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: flex-start; // Alinha os itens à esquerda
 `;
 
 const Label = styled.label`
-  display: block;
+  display: block; // Mantém o Label como bloco (opcional, dependendo do layout desejado)
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: black;
+  text-align: left; // Garante que o texto do Label fique alinhado à esquerda
 `;
 
 const Input = styled.input`
