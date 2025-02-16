@@ -233,8 +233,6 @@ const ResponsePage = () => {
 
     // Exemplo de uso
     const doc = new jsPDF();
-    doc.text('Hello world!', 10, 10);
-    doc.save('example.pdf');
 
     // Configurações para quebrar o texto em várias linhas
     const pageWidth = doc.internal.pageSize.getWidth(); // Largura da página
