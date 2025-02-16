@@ -222,7 +222,7 @@ const Form = () => {
     const fetchSleepHistory = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:8090/api/sleep/save/history");
+        const response = await axios.get("https://sonointeligente.onrender.com//api/sleep/save/history");
         console.log("Dados retornados pelo backend:", response.data);
         setSleepHistory(response.data);
       } catch (error) {
@@ -240,7 +240,7 @@ const Form = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8090/api/sleep/generate-prompt",
+        "https://sonointeligente.onrender.com//api/sleep/generate-prompt",
         formData
       );
       navigate("/response", { state: { response: response.data } });
@@ -254,7 +254,7 @@ const Form = () => {
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:8090/api/sleep/${id}`);
+      await axios.delete(`https://sonointeligente.onrender.com//api/sleep/${id}`);
       setSleepHistory(sleepHistory.filter((entry) => entry.id !== id));
     } catch (error) {
       console.error("Erro ao deletar o plano de sono:", error);
