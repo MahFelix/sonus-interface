@@ -230,8 +230,6 @@ const ResponsePage = () => {
       .replace(/<br\s*\/?>/g, "\n") // Substitui <br> por \n
       .replace(/<[^>]+>/g, ""); // Remove outras tags HTML
 
-    // Cria um novo documento PDF
-    const { jsPDF } = window.jspdf;
 
     // Exemplo de uso
     const doc = new jsPDF();
