@@ -284,7 +284,6 @@ const Form = () => {
       id="bedtime"
       type="time"
       value={formData.bedtime}
-      placeholder="Hora de dormir"
       onChange={(e) =>
         setFormData({ ...formData, bedtime: e.target.value })
       }
@@ -297,7 +296,6 @@ const Form = () => {
       id="wakeupTime"
       type="time"
       value={formData.wakeupTime}
-      placeholder="Hora de acordar"
       onChange={(e) =>
         setFormData({ ...formData, wakeupTime: e.target.value })
       }
