@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 1000, // Aumenta o limite para 1000 kB
-    RollupOptions: {
+    rollupOptions: { // Correção: "rollupOptions" com "r" minúsculo
       external: ['jspdf'], // Adicione 'jspdf' aqui
     },
   },
