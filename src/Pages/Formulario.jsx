@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Footer from "../Components/Footer";
-import Sonus from '../assets/Sonusimage.png';
+import Sonus from '../assets/sonus.png';
 import DOMPurify from "dompurify";
 import Header from "../Components/Header";
 
@@ -37,6 +37,9 @@ const InputGroup = styled.div`
   z-index: 2;
   margin-right: 12px;
   margin-left: -10px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 `;
 
 const Label = styled.label`
@@ -116,13 +119,13 @@ const DeleteButton = styled.button`
 
 
 const Logo = styled.img`
-  height: 200px;
-  width: 200px;
+  height: 150px;
+  width: 150px;
   display: flex;
   justify-content: center;
-  margin-top: -40px;
   align-items: center;
-  margin-left: 65px;
+  margin-bottom: 10px;
+
 `;
 
 const ReportContainer = styled.div`
