@@ -125,8 +125,8 @@ const Logo = styled.img`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
-
+  margin-bottom: 15px;
+  margin-left: 90px;
 `;
 
 const ReportContainer = styled.div`
