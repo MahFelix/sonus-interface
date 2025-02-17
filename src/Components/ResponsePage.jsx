@@ -9,11 +9,11 @@ import { jsPDF } from "jspdf";
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import Header from "./Header";
-import { Bar, Pie } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from "chart.js";
+import { Bar, Pie, Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from "chart.js";
 
 // Registra os componentes do Chart.js
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
 // Animação de fade-in
 const fadeIn = keyframes`
@@ -24,6 +24,18 @@ const fadeIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+`;
+
+// Animação de slide-in
+const slideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 `;
 
@@ -127,7 +139,7 @@ const ChartContainer = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
-  animation: ${fadeIn} 0.5s ease-in-out;
+  animation: ${slideIn} 0.5s ease-in-out;
 `;
 
 // Gráfico de pizza
@@ -137,7 +149,17 @@ const PieChartContainer = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
-  animation: ${fadeIn} 0.5s ease-in-out;
+  animation: ${slideIn} 0.5s ease-in-out;
+`;
+
+// Gráfico de linha
+const LineChartContainer = styled.div`
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  animation: ${slideIn} 0.5s ease-in-out;
 `;
 
 // Fundo estrelado
@@ -176,14 +198,20 @@ const ResponsePage = () => {
   const navigate = useNavigate();
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sleepData, setSleepData] = useState({
+    hours: [7, 6, 8, 7.5, 6.5, 8, 9], // Horas de sono por dia
+    quality: [8, 7, 9, 8.5, 7.5, 9, 10], // Qualidade do sono (0-10)
+    stress: [5, 6, 4, 5.5, 6.5, 4, 3], // Nível de estresse (0-10)
+    distribution: [60, 30, 10], // Distribuição do sono (profundo, leve, REM)
+  });
 
-  // Dados fictícios para o gráfico de barras
+  // Dados para o gráfico de barras (horas de sono)
   const barChartData = {
     labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
     datasets: [
       {
         label: "Horas de Sono",
-        data: [7, 6, 8, 7.5, 6.5, 8, 9],
+        data: sleepData.hours,
         backgroundColor: "#00bcd4",
         borderColor: "#0097a7",
         borderWidth: 1,
@@ -218,13 +246,13 @@ const ResponsePage = () => {
     },
   };
 
-  // Dados fictícios para o gráfico de pizza
+  // Dados para o gráfico de pizza (distribuição do sono)
   const pieChartData = {
     labels: ["Sono Profundo", "Sono Leve", "REM"],
     datasets: [
       {
         label: "Distribuição do Sono",
-        data: [60, 30, 10],
+        data: sleepData.distribution,
         backgroundColor: ["#00bcd4", "#0097a7", "#00796b"],
         borderColor: ["#fff", "#fff", "#fff"],
         borderWidth: 1,
@@ -245,6 +273,56 @@ const ResponsePage = () => {
         display: true,
         text: "Distribuição do Sono",
         color: "white",
+      },
+    },
+  };
+
+  // Dados para o gráfico de linha (qualidade do sono e estresse)
+  const lineChartData = {
+    labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
+    datasets: [
+      {
+        label: "Qualidade do Sono",
+        data: sleepData.quality,
+        borderColor: "#00bcd4",
+        backgroundColor: "rgba(0, 188, 212, 0.2)",
+        borderWidth: 2,
+        fill: true,
+      },
+      {
+        label: "Nível de Estresse",
+        data: sleepData.stress,
+        borderColor: "#ff6f61",
+        backgroundColor: "rgba(255, 111, 97, 0.2)",
+        borderWidth: 2,
+        fill: true,
+      },
+    ],
+  };
+
+  const lineChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Qualidade do Sono e Nível de Estresse",
+        color: "white",
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: "white",
+        },
+      },
+      x: {
+        ticks: {
+          color: "white",
+        },
       },
     },
   };
@@ -338,6 +416,9 @@ const ResponsePage = () => {
             <PieChartContainer>
               <Pie data={pieChartData} options={pieChartOptions} />
             </PieChartContainer>
+            <LineChartContainer>
+              <Line data={lineChartData} options={lineChartOptions} />
+            </LineChartContainer>
             <ButtonContainer>
               <Button onClick={() => navigate("/form")}>Voltar ao Formulário</Button>
               <Button onClick={handleDownloadPDF}>Baixar PDF</Button>
