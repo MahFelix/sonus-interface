@@ -387,7 +387,7 @@ const ResponsePage = () => {
 
   return (
     <GlobalStyle>
-      <Header />
+  
       <StarBackground>
         <Canvas>
           <Stars
