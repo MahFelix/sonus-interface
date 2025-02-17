@@ -319,7 +319,7 @@ const Form = () => {
       }
     />
   </InputGroup>
-<InputGroup>
+  <InputGroup>
   <Label htmlFor="difficulties">
     Tem enfrentado alguma dificuldade para dormir? Me conta! 🤔
   </Label>
@@ -327,16 +327,15 @@ const Form = () => {
     id="difficulties"
     type="text"
     placeholder="Ex: Insônia, sonolência diurna, etc."
-    value={formData.difficulties} // Removendo .join(", ")
-    onChange={(e) =>
+    value={formData.difficulties.join(", ")} // Mantendo o formato correto
+    onChange={(e) => {
       setFormData({
         ...formData,
-        difficulties: e.target.value // Apenas capturando o valor do input
-      })
-    }
+        difficulties: e.target.value.split(",") // Mantém os itens separados corretamente
+      });
+    }}
   />
 </InputGroup>
-
 
   <InputGroup>
     <Label htmlFor="usesMedication">
