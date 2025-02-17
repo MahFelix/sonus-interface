@@ -93,7 +93,7 @@ const ButtonContainer = styled.div`
   justify-content: center;
   gap: 20px;
   margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 5rem;
 `;
 
 const Button = styled.button`
