@@ -319,24 +319,24 @@ const Form = () => {
       }
     />
   </InputGroup>
+<InputGroup>
+  <Label htmlFor="difficulties">
+    Tem enfrentado alguma dificuldade para dormir? Me conta! 🤔
+  </Label>
+  <Input
+    id="difficulties"
+    type="text"
+    placeholder="Ex: Insônia, sonolência diurna, etc."
+    value={formData.difficulties} // Removendo .join(", ")
+    onChange={(e) =>
+      setFormData({
+        ...formData,
+        difficulties: e.target.value // Apenas capturando o valor do input
+      })
+    }
+  />
+</InputGroup>
 
-  <InputGroup>
-    <Label htmlFor="difficulties">
-      Tem enfrentado alguma dificuldade para dormir? Me conta! 🤔
-    </Label>
-    <Input
-      id="difficulties"
-      type="text"
-      placeholder="Ex: Insônia, sonolência diurna, etc."
-      value={formData.difficulties.join(", ")}
-      onChange={(e) =>
-        setFormData({
-          ...formData,
-          difficulties: e.target.value.split(",").map(item => item.trim())
-        })
-      }
-    />
-  </InputGroup>
 
   <InputGroup>
     <Label htmlFor="usesMedication">
