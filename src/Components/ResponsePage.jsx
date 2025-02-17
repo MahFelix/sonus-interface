@@ -1,16 +1,33 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import Footer from "../Components/Footer";
 import axios from "axios";
-import DOMPurify from "dompurify"; // Importe DOMPurify para sanitizar o conteúdo
-import { jsPDF } from "jspdf"; // Importe a biblioteca jspdf
+import DOMPurify from "dompurify";
+import { jsPDF } from "jspdf";
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import Header from "./Header";
+import { Bar, Pie } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from "chart.js";
 
-// Estilos globais para a fonte Poppins
+// Registra os componentes do Chart.js
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+
+// Animação de fade-in
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+// Estilos globais para a fonte Quicksand
 const GlobalStyle = styled.div`
   font-family: "Quicksand", sans-serif;
   position: relative;
@@ -18,36 +35,37 @@ const GlobalStyle = styled.div`
   background-color: #0a0a23; /* Fundo escuro para o tema espacial */
 `;
 
-
-const ResponseContainer = styled.div`
+// Contêiner principal do dashboard
+const DashboardContainer = styled.div`
   padding: 2rem;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   text-align: center;
-  background-color: rgba(0, 0, 0, 0.8); /* Fundo semi-transparente */
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   color: white;
-  padding-bottom: 100px;
   position: relative;
   z-index: 1; /* Garante que o conteúdo fique acima do fundo estrelado */
 `;
 
-const ResponseText = styled.div`
-  background-color: ${({ theme }) => theme.colors.secondary};
+// Card para exibir o plano de sono
+const PlanCard = styled.div`
+  background-color: rgba(0, 0, 0, 0.8); /* Fundo semi-transparente */
   padding: 1.5rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-  color: ${({ theme }) => theme.colors.text};
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
   text-align: left;
-  border: solid 3px white;
+  border: solid 2px #00bcd4; /* Borda azul moderna */
+  animation: ${fadeIn} 0.5s ease-in-out;
+`;
+
+// Texto do plano de sono
+const PlanText = styled.div`
   white-space: pre-wrap;
   line-height: 1.6;
   font-size: 1rem;
-  margin-bottom: 10px;
-  max-height: 400px; // Altura máxima da div
-  overflow-y: auto; // Habilita a rolagem vertical
-  scroll-behavior: smooth; // Rolagem suave
+  max-height: 400px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 
   /* Estilizando a barra de rolagem */
   &::-webkit-scrollbar {
@@ -55,35 +73,33 @@ const ResponseText = styled.div`
   }
 
   &::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.colors.background};
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.colors.primary};
+    background: #00bcd4;
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme.colors.primaryDark};
+    background: #0097a7;
   }
 `;
 
+// Botões de ação
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  gap: 20px; // Espaçamento entre os botões
+  gap: 20px;
   margin-top: 2rem;
   margin-bottom: 2rem;
-  position: relative;
-  z-index: 1; /* Garante que os botões fiquem acima do fundo estrelado */
-
 `;
 
 const Button = styled.button`
   padding: 0.75rem 1.5rem;
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.text};
+  background-color: #00bcd4; /* Azul moderno */
+  color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -93,7 +109,7 @@ const Button = styled.button`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryDark};
+    background-color: #0097a7; /* Azul mais escuro no hover */
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
   }
@@ -104,9 +120,41 @@ const Button = styled.button`
   }
 `;
 
+// Gráfico de barras
+const ChartContainer = styled.div`
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  animation: ${fadeIn} 0.5s ease-in-out;
+`;
+
+// Gráfico de pizza
+const PieChartContainer = styled.div`
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  animation: ${fadeIn} 0.5s ease-in-out;
+`;
+
+// Fundo estrelado
+const StarBackground = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+`;
+
+// Spinner de carregamento
 const LoadingSpinner = styled.div`
   border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid ${({ theme }) => theme.colors.primary};
+  border-top: 4px solid #00bcd4;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -123,32 +171,83 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-// Estilos para o fundo estrelado
-const StarBackground = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0; /* Garante que o fundo fique atrás de todo o conteúdo */
-  pointer-events: none; /* Impede que o fundo interfira com cliques */
-`;
-
-const Message = styled.div`
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: ${({ theme }) => theme.colors.secondary};
-  border-radius: 8px;
-  color: ${({ theme }) => theme.colors.text};
-  font-size: 0.9rem;
-`;
-
 const ResponsePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState(""); // Estado para feedback ao salvar o plano
+
+  // Dados fictícios para o gráfico de barras
+  const barChartData = {
+    labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
+    datasets: [
+      {
+        label: "Horas de Sono",
+        data: [7, 6, 8, 7.5, 6.5, 8, 9],
+        backgroundColor: "#00bcd4",
+        borderColor: "#0097a7",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const barChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Horas de Sono na Semana",
+        color: "white",
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: "white",
+        },
+      },
+      x: {
+        ticks: {
+          color: "white",
+        },
+      },
+    },
+  };
+
+  // Dados fictícios para o gráfico de pizza
+  const pieChartData = {
+    labels: ["Sono Profundo", "Sono Leve", "REM"],
+    datasets: [
+      {
+        label: "Distribuição do Sono",
+        data: [60, 30, 10],
+        backgroundColor: ["#00bcd4", "#0097a7", "#00796b"],
+        borderColor: ["#fff", "#fff", "#fff"],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          color: "white",
+        },
+      },
+      title: {
+        display: true,
+        text: "Distribuição do Sono",
+        color: "white",
+      },
+    },
+  };
 
   useEffect(() => {
     if (location.state && location.state.response) {
@@ -181,117 +280,71 @@ const ResponsePage = () => {
     }
   }, [location.state]);
 
-  // // Função para salvar o plano de sono
-  // const handleSavePlan = async () => {
-  //   try {
-  //     // Verifica se os dados do formulário estão disponíveis
-  //     if (!location.state || !location.state.formData) {
-  //       throw new Error("Dados do formulário não encontrados.");
-  //     }
-
-  //     const responseData = location.state.response;
-  //     const generatedText =
-  //       typeof responseData === "string"
-  //         ? responseData
-  //         : responseData.candidates[0].content.parts[0].text;
-
-  //     // Recupera os dados do formulário do estado da localização
-  //     const formData = location.state.formData;
-
-  //     // Cria o objeto SleepPlan com todos os campos necessários
-  //     const sleepPlan = {
-  //       bedtime: formData.bedtime,
-  //       wakeupTime: formData.wakeupTime,
-  //       difficulties: formData.difficulties.join(", "), // Converte array para string
-  //       sleepQuality: formData.sleepQuality,
-  //       stressLevel: formData.stressLevel,
-  //       usesMedication: formData.usesMedication,
-  //       medicationDetails: formData.medicationDetails,
-  //       sleepNotes: formData.sleepNotes,
-  //       plan: generatedText, // Plano gerado pela API
-  //       createdAt: new Date().toISOString(), // Data de criação
-  //     };
-
-  //     // Envia o plano de sono para o backend
-  //     await axios.post("http://localhost:8090/api/sleep/save", sleepPlan);
-
-  //     setMessage("Plano de sono salvo com sucesso!");
-  //     navigate("/form"); // Redireciona para o formulário
-  //   } catch (error) {
-  //     console.error("Erro ao salvar o plano de sono:", error);
-  //     setMessage("Erro ao salvar o plano de sono. Verifique o console para mais detalhes.");
-  //   }
-  // };
-
   // Função para baixar o texto em PDF
   const handleDownloadPDF = () => {
-    // Remove as tags HTML e converte o conteúdo em texto simples
     const plainText = response
-      .replace(/<br\s*\/?>/g, "\n") // Substitui <br> por \n
-      .replace(/<[^>]+>/g, ""); // Remove outras tags HTML
+      .replace(/<br\s*\/?>/g, "\n")
+      .replace(/<[^>]+>/g, "");
 
-
-    // Exemplo de uso
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 10;
+    const maxWidth = pageWidth - margin * 2;
+    const lineHeight = 10;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = 10;
 
-    // Configurações para quebrar o texto em várias linhas
-    const pageWidth = doc.internal.pageSize.getWidth(); // Largura da página
-    const margin = 10; // Margem esquerda e direita
-    const maxWidth = pageWidth - margin * 2; // Largura máxima do texto
-    const lineHeight = 10; // Altura de cada linha
-    const pageHeight = doc.internal.pageSize.getHeight(); // Altura da página
-    let y = 10; // Posição Y inicial
-
-    // Divide o texto em várias linhas
     const lines = doc.splitTextToSize(plainText, maxWidth);
-
-    // Adiciona o texto ao PDF
     lines.forEach((line) => {
       if (y + lineHeight > pageHeight - margin) {
-        doc.addPage(); // Adiciona uma nova página
-        y = margin; // Reinicia a posição Y
+        doc.addPage();
+        y = margin;
       }
-      doc.text(line, margin, y); // Adiciona a linha ao PDF
-      y += lineHeight; // Atualiza a posição Y
+      doc.text(line, margin, y);
+      y += lineHeight;
     });
 
-    // Salva o PDF com um nome de arquivo
     doc.save("plano_de_sono.pdf");
   };
 
   return (
     <GlobalStyle>
-      <Header/>
+      <Header />
       <StarBackground>
         <Canvas>
           <Stars
-            radius={1} // Estrelas menores
-            depth={50} // Profundidade maior
-            count={5000} // Menos estrelas
-            factor={5} // Menos brilho
+            radius={1}
+            depth={50}
+            count={5000}
+            factor={5}
             fade
-            speed={2.5} // Movimento mais lento
+            speed={2.5}
           />
         </Canvas>
       </StarBackground>
-      <ButtonContainer>
-        <Button onClick={() => navigate("/form")}>
-          Voltar ao Formulário
-        </Button>
-        {/* <Button onClick={handleSavePlan}>Salvar Plano de Sono</Button> */}
-      </ButtonContainer>
-      <ResponseContainer>
+      <DashboardContainer>
         <h1>Seu plano está pronto! 🚀</h1>
         {loading ? (
           <LoadingSpinner />
         ) : (
           <>
-            <ResponseText dangerouslySetInnerHTML={{ __html: response }} />
-            {message && <Message>{message}</Message>}
-            <Button onClick={handleDownloadPDF}>Baixar PDF</Button>
+            <PlanCard>
+              <h2>Plano de Sono Personalizado</h2>
+              <PlanText dangerouslySetInnerHTML={{ __html: response }} />
+            </PlanCard>
+            <ChartContainer>
+              <Bar data={barChartData} options={barChartOptions} />
+            </ChartContainer>
+            <PieChartContainer>
+              <Pie data={pieChartData} options={pieChartOptions} />
+            </PieChartContainer>
+            <ButtonContainer>
+              <Button onClick={() => navigate("/form")}>Voltar ao Formulário</Button>
+              <Button onClick={handleDownloadPDF}>Baixar PDF</Button>
+            </ButtonContainer>
           </>
         )}
-      </ResponseContainer>
+      </DashboardContainer>
       <Footer />
     </GlobalStyle>
   );
